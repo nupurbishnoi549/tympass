@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Anu's Game List</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            background: #fff0f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .game-card {
+            flex: 1 1 250px;
+            max-width: 300px;
+            margin: 10px;
+            padding: 20px;
+            border: 2px solid #ff69b4;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.3s, background 0.3s;
+            background: #fff;
+        }
+
+        .game-card:hover {
+            transform: scale(1.05);
+            background: #ffe4ec;
+        }
+
+        .game-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 10px;
+        }
+
+        /* Modal Style */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            padding-top: 60px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 2px solid #ff69b4;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        /* Puzzle styles */
+        #puzzle {
+            margin-top: 20px;
+            width: 320px;
+            height: 320px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 2px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #puzzle div {
+            background-image: url('./assets/images/anu.png');
+            background-size: 400% 400%;
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Quiz styles */
+        .quiz-question {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .quiz-options button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #ff69b4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .quiz-options button:hover {
+            background-color: #ff4da6;
+        }
+
+        #quiz-result {
+            margin-top: 20px;
+            font-weight: bold;
+            color: green;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🎮 Choose a Game for Anu 🎀</h1>
+
+    <div class="game-container">
+        <!-- Puzzle Game Card -->
+        <div class="game-card" onclick="openModal('puzzleModal')">
+            <img src="https://cdn-icons-png.flaticon.com/512/685/685352.png" class="game-icon" alt="Puzzle Icon">
+            <h3>Slide Puzzle 🧩</h3>
+        </div>
+
+        <!-- Quiz Game Card -->
+        <div class="game-card" onclick="openModal('quizModal')">
+            <img src="https://cdn-icons-png.flaticon.com/512/597/597177.png" class="game-icon" alt="Quiz Icon">
+            <h3>Quiz – Kitna jaante ho Anu ko? 🎀</h3>
+        </div>
+    </div>
+
+    <!-- Puzzle Modal -->
+    <div id="puzzleModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('puzzleModal')">&times;</span>
+            <h2>🧩 Slide Puzzle – Anu's Photo</h2>
+            <div id="puzzle"></div>
+            <button onclick="shufflePuzzle()"
+                style="margin-top: 20px; padding:10px 20px; background: #ff4da6; color: white; border: none; border-radius: 8px; cursor: pointer;">🔀
+                Shuffle Again</button>
+        </div>
+    </div>
+
+    <!-- Quiz Modal -->
+    <div id="quizModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('quizModal')">&times;</span>
+            <h2>🎀 Anu Quiz Time 🎀</h2>
+            <div class="quiz-question" id="quiz-question">Loading question...</div>
+            <div class="quiz-options" id="quiz-options"></div>
+            <div id="quiz-result"></div>
+        </div>
+    </div>
+
+    <script>
+        const size = 4; // 4x4 grid
+        let tiles = [];
+        let emptyX = size - 1;
+        let emptyY = size - 1;
+
+        function createPuzzle() {
+            const puzzle = document.getElementById('puzzle');
+            puzzle.innerHTML = '';
+            tiles = [];
+
+            for (let y = 0; y < size; y++) {
+                tiles[y] = [];
+                for (let x = 0; x < size; x++) {
+                    const tile = document.createElement('div');
+                    tile.style.backgroundPosition = `${(x / (size - 1)) * 100}% ${(y / (size - 1)) * 100}%`;
+                    tile.dataset.x = x;
+                    tile.dataset.y = y;
+                    tile.addEventListener('click', () => moveTile(x, y));
+                    puzzle.appendChild(tile);
+                    tiles[y][x] = tile;
+                }
+            }
+            tiles[size - 1][size - 1].style.visibility = 'hidden';
+        }
+
+        function moveTile(x, y) {
+            if ((Math.abs(x - emptyX) + Math.abs(y - emptyY)) === 1) {
+                const tile = tiles[y][x];
+                const emptyTile = tiles[emptyY][emptyX];
+
+                const temp = tile.style.backgroundPosition;
+                tile.style.backgroundPosition = emptyTile.style.backgroundPosition;
+                emptyTile.style.backgroundPosition = temp;
+
+                emptyTile.style.visibility = 'visible';
+                tile.style.visibility = 'hidden';
+
+                emptyX = x;
+                emptyY = y;
+            }
+        }
+
+        function shufflePuzzle() {
+            for (let i = 0; i < 1000; i++) {
+                const neighbors = [];
+                if (emptyX > 0) neighbors.push([emptyX - 1, emptyY]);
+                if (emptyX < size - 1) neighbors.push([emptyX + 1, emptyY]);
+                if (emptyY > 0) neighbors.push([emptyX, emptyY - 1]);
+                if (emptyY < size - 1) neighbors.push([emptyX, emptyY + 1]);
+
+                const [x, y] = neighbors[Math.floor(Math.random() * neighbors.length)];
+                moveTile(x, y);
+            }
+        }
+
+        function openModal(id) {
+            document.getElementById(id).style.display = 'block';
+            if (id === 'puzzleModal') {
+                createPuzzle();
+                shufflePuzzle();
+            } else if (id === 'quizModal') {
+                loadQuiz();
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+            document.getElementById('quiz-result').innerText = '';
+        }
+
+        // Quiz Logic
+        const quizData = [
+            {
+                question: "Anu ka favorite chocolate kaunsa hai?",
+                options: ["5 Star", "KitKat", "Fruit&Nuts", "Perk"],
+                answer: "Fruit&Nuts"
+            },
+             {
+                question: "Anu ko kaunsa emoji sabse zyada pasand hai? 😜",
+                options: ["😍", "🤣", "😎", "😱","🤭"],
+                answer: "🤣"
+            },
+            {
+                question: "Anu ko kaunsa rang sabse zyada pasand hai?",
+                options: ["Pink", "Blue", "Black", "Red","white"],
+                answer: "Black"
+            },
+            {
+                question: "Anu ko kis cheez ka sabse zyada shauk hai?",
+                options: ["Selfies lena 📸", "Football khelna ⚽", "Painting 🎨", "Cooking 🍳","soneee ka🥱"],
+                answer: "soneee ka🥱"
+            },
+             {
+                question: "Anu mujhe konsa subject nhi pdhaya 🥺😂",
+                options: ["Maths", "Science", "History", "English"],
+                answer: "Maths"
+            },
+            {
+                question: "Anu ko kis cheez se sabse zyada darr lagta hai? 😱",
+                options: ["Darkness", "water", "Studying", "Public speaking"],
+                answer: "water"
+            },
+            {
+                question: "What makes Anu the most angry? 🤬",
+                options: [
+                    "Someone stealing my food 🍔",
+                    "Being late 🕒",
+                    "Not replying to texts 📱",
+                    "Leaving messages on seen 👀",
+                ],
+                answer: "Leaving messages on seen 👀"
+            },
+            {
+                question: "What does Anu look like? 😎",
+                options: [
+                    "Like a Queen 👑",
+                    "Like a Superstar 🌟",
+                    "Like an Angel 😇",
+                    "Like a Fashion Icon 👗",
+                    "She won't tell you 🫣"
+                ],
+                answer: "Like a Queen 👑"
+            },
+
+        ];
+
+        let currentQuestion = 0;
+
+        function loadQuiz() {
+            const quizQuestion = document.getElementById('quiz-question');
+            const quizOptions = document.getElementById('quiz-options');
+            quizOptions.innerHTML = '';
+
+            const current = quizData[currentQuestion];
+            quizQuestion.innerText = current.question;
+
+            current.options.forEach(option => {
+                const button = document.createElement('button');
+                button.innerText = option;
+                button.onclick = () => checkAnswer(option);
+                quizOptions.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selected) {
+            const result = document.getElementById('quiz-result');
+            if (selected === quizData[currentQuestion].answer) {
+                result.innerText = "🎉 Sahi jawab! Anu proud hogi! 🎀";
+            } else {
+                result.innerText = "❌ Galat jawab! Phir se try karo!";
+            }
+
+            currentQuestion = (currentQuestion + 1) % quizData.length;
+            setTimeout(loadQuiz, 2000);
+        }
+    </script>
+
+</body>
+
+</html>
