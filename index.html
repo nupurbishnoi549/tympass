@@ -85,19 +85,17 @@
             color: black;
         }
 
-        /* Puzzle styles */
-        #puzzle {
-            margin-top: 20px;
-            width: 320px;
-            height: 320px;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(4, 1fr);
-            gap: 2px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
+      #puzzle {
+    margin-top: 20px;
+    width: 240px; 
+    height: 240px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 2px;
+    margin-left: auto;
+    margin-right: auto;
+}
         #puzzle div {
             background-image: url('./assets/images/anu.png');
             background-size: 400% 400%;
@@ -185,7 +183,7 @@
     </div>
 
     <script>
-        const size = 4; // 4x4 grid
+        const size = 3; // 4x4 grid
         let tiles = [];
         let emptyX = size - 1;
         let emptyY = size - 1;
@@ -262,22 +260,22 @@
                 options: ["5 Star", "KitKat", "Fruit&Nuts", "Perk"],
                 answer: "Fruit&Nuts"
             },
-             {
+            {
                 question: "Anu ko kaunsa emoji sabse zyada pasand hai? 😜",
-                options: ["😍", "🤣", "😎", "😱","🤭"],
-                answer: "🤣"
+                options: ["😍", "🤣", "😎", "😱", "🤭"],
+                answer: "🤭"
             },
             {
                 question: "Anu ko kaunsa rang sabse zyada pasand hai?",
-                options: ["Pink", "Blue", "Black", "Red","white"],
+                options: ["Pink", "Blue", "Black", "Red", "white"],
                 answer: "Black"
             },
             {
                 question: "Anu ko kis cheez ka sabse zyada shauk hai?",
-                options: ["Selfies lena 📸", "Football khelna ⚽", "Painting 🎨", "Cooking 🍳","soneee ka🥱"],
+                options: ["Selfies lena 📸", "Painting 🎨", "Cooking 🍳", "soneee ka🥱"],
                 answer: "soneee ka🥱"
             },
-             {
+            {
                 question: "Anu mujhe konsa subject nhi pdhaya 🥺😂",
                 options: ["Maths", "Science", "History", "English"],
                 answer: "Maths"
@@ -304,42 +302,81 @@
                     "Like a Superstar 🌟",
                     "Like an Angel 😇",
                     "Like a Fashion Icon 👗",
-                    "She won't tell you 🫣"
                 ],
                 answer: "Like a Queen 👑"
+            },
+            {
+                question: "Agar Anu ek cartoon character hoti, to kaun hoti? 😂",
+                options: ["Rapunzel", "Annabelle", "Elsa", "Cinderella"],
+                answer: "Cinderella"
+            },
+            {
+                question: "Anu ka sabse favourite wala look kaunsa hai? 😌",
+                options: ["Serious Look 😐", "Smile Wala Look 😁", "Cute wala Look 👀", "Angry Wala Look 😡", "Shy Wala Look 🙈",],
+                answer: "Cute wala Look 👀"
+            },
+            {
+                question: "Anu kis cheez pe kabhi compromise nahi karti? 😌",
+                options: ["Apni Neend 😴", "Apni Selfies 📸", "Apne Chocolate 🍫", "Apne Friends ❤️"],
+                answer: "Apni Neend 😴"
             },
 
         ];
 
-        let currentQuestion = 0;
+  let currentQuestion = 0;
+    let score = 0;  // Track the score
 
-        function loadQuiz() {
-            const quizQuestion = document.getElementById('quiz-question');
-            const quizOptions = document.getElementById('quiz-options');
-            quizOptions.innerHTML = '';
+    function loadQuiz() {
+        const quizQuestion = document.getElementById('quiz-question');
+        const quizOptions = document.getElementById('quiz-options');
+        const quizResult = document.getElementById('quiz-result');
 
-            const current = quizData[currentQuestion];
-            quizQuestion.innerText = current.question;
+        // Clear previous result message
+        quizResult.innerText = '';
 
-            current.options.forEach(option => {
-                const button = document.createElement('button');
-                button.innerText = option;
-                button.onclick = () => checkAnswer(option);
-                quizOptions.appendChild(button);
-            });
+        quizOptions.innerHTML = '';
+        const current = quizData[currentQuestion];
+        quizQuestion.innerText = current.question;
+
+        current.options.forEach(option => {
+            const button = document.createElement('button');
+            button.innerText = option;
+            button.onclick = () => checkAnswer(option);
+            quizOptions.appendChild(button);
+        });
+    }
+
+    function checkAnswer(selected) {
+        const result = document.getElementById('quiz-result');
+        const correctAnswer = quizData[currentQuestion].answer;
+
+        if (selected === correctAnswer) {
+            score++; // Increase score if answer is correct
+            result.innerText = "🎉 Sahi jawab! Anu proud hogi! 🎀";
+        } else {
+            result.innerText = "❌ Galat jawab! Cutie firse try kro";
         }
 
-        function checkAnswer(selected) {
-            const result = document.getElementById('quiz-result');
-            if (selected === quizData[currentQuestion].answer) {
-                result.innerText = "🎉 Sahi jawab! Anu proud hogi! 🎀";
+        // Move to the next question after a delay
+        currentQuestion = (currentQuestion + 1) % quizData.length;
+        setTimeout(() => {
+            if (currentQuestion === 0) {
+                showFinalResult();  // Show final result after all questions are done
             } else {
-                result.innerText = "❌ Galat jawab! Phir se try karo!";
+                loadQuiz();  // Load the next question
             }
+        }, 2000);  // Wait for 2 seconds before showing the next question
+    }
 
-            currentQuestion = (currentQuestion + 1) % quizData.length;
-            setTimeout(loadQuiz, 2000);
-        }
+    function showFinalResult() {
+        const finalResult = document.getElementById('quiz-result');
+        finalResult.innerHTML = `🎉 Cutie ka final result! 🎀<br>Correct Answers: ${score} out of ${quizData.length}<br>`;
+        finalResult.style.fontSize = '1.5rem';
+        finalResult.style.fontWeight = 'bold';
+        finalResult.style.color = 'green';
+    }
+
+
     </script>
 
 </body>
